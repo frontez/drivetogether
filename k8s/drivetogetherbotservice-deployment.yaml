@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drivetogetherbotservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: drivetogetherbotservice
+  template:
+    metadata:
+      labels:
+        app: drivetogetherbotservice
+    spec:
+      containers:
+      - name: drivetogetherbotservice
+        image: docker.io/frontez/drivetogetherbotservice:latest
+        ports:
+        - containerPort: 8000
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "0.2"

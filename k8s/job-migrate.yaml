@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate-database
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrate
+        image: trip-service:latest
+        command: ["dotnet", "ef", "database", "update"]
+      - name: migrate
+        image: user-service:latest
+        command: ["dotnet", "ef", "database", "update"]
+      restartPolicy: Never

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: drive-together-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: arch.homework 
+    http:
+      paths:
+      - path: /trip
+        pathType: Prefix
+        backend:
+          service:
+            name: tripservice
+            port:
+              number: 80
+      - path: /user
+        pathType: Prefix
+        backend:
+          service:
+            name: userservice
+            port:
+              number: 80

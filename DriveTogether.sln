@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DriveTogetherBot", "DriveTogetherBot\DriveTogetherBot.csproj", "{5012370B-2F5E-4245-8090-ADCD416542AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService", "UserService\UserService.csproj", "{798F2A0D-50DB-43D9-BCF0-F4FE69E1D4BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripService", "TripService\TripService.csproj", "{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5012370B-2F5E-4245-8090-ADCD416542AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5012370B-2F5E-4245-8090-ADCD416542AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5012370B-2F5E-4245-8090-ADCD416542AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5012370B-2F5E-4245-8090-ADCD416542AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{798F2A0D-50DB-43D9-BCF0-F4FE69E1D4BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{798F2A0D-50DB-43D9-BCF0-F4FE69E1D4BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{798F2A0D-50DB-43D9-BCF0-F4FE69E1D4BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{798F2A0D-50DB-43D9-BCF0-F4FE69E1D4BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

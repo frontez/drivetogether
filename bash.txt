@@ -1,0 +1,9 @@
+docker build -t frontez/userservice:latest .
+docker push frontez/userservice:latest
+
+docker build -t frontez/tripservice:latest .
+docker push frontez/tripservice:latest
+
+docker build -t frontez/drivetogetherbotservice:latest .
+docker push frontez/drivetogetherbotservice:latest
+

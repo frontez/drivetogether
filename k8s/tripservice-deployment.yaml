@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tripservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tripservice
+  template:
+    metadata:
+      labels:
+        app: tripservice
+    spec:
+      containers:
+      - name: tripservice
+        image: docker.io/frontez/tripservice:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            configMapKeyRef:
+              name: trip-service-config
+              key: ConnectionStrings__DefaultConnection
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+          requests:
+            memory: 256Mi
+            cpu: "0.2"

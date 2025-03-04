@@ -7,3 +7,5 @@ docker push frontez/tripservice:latest
 docker build -t frontez/drivetogetherbotservice:latest .
 docker push frontez/drivetogetherbotservice:latest
 
+
+minikube start --vm-driver=docker

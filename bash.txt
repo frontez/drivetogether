@@ -9,3 +9,26 @@ docker push frontez/drivetogetherbotservice:latest
 
 
 minikube start --vm-driver=docker
+minikube addons enable ingress
+minikube addons enable ingress-dns
+
+docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:latest start-dev
+
+kubectl apply -f keycloak-deployment.yaml
+kubectl apply -f keycloak-service.yaml
+
+kubectl port-forward svc/keycloak 3005:3005
+
+kubectl apply -f userservice-deployment.yaml
+kubectl apply -f userservice.yaml
+
+#только для тестирования UserService отдельно
+kubectl apply -f userservice-configmap.yaml
+kubectl apply -f secret.yaml
+
+kubectl create namespace ingress-nginx
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install nginx ingress-nginx/ingress-nginx --namespace ingress-nginx -f nginx-ingress.yaml  
+
+kubectl apply -f drivetogether-ingress.yaml

@@ -5,6 +5,7 @@ using UserService.Models;
 using UserService.Data;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace UserService.Controllers;
 
@@ -20,7 +21,8 @@ public class UserController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id}")]    
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult<User>> Get(long id)
     {
         var user = await _context.Users.FindAsync(id);
@@ -32,7 +34,8 @@ public class UserController : ControllerBase
         return user;
     }
 
-    [HttpPost]
+    [HttpPost]    
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<IActionResult> Create([FromBody] User user)
     {
         if (user == null)

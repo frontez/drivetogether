@@ -34,6 +34,8 @@ builder.Services.AddDbContext<AppDbContext>(options => options
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 if (true)
 {
     app.UseSwagger();
@@ -47,6 +49,19 @@ app.MapGet("/users/me", (ClaimsPrincipal claimsPrincipal) =>
 {
     return claimsPrincipal.Claims.ToDictionary(c => c.Type, c => c.Value);
 }).RequireAuthorization();
+
+app.MapGet("/login", (IConfiguration configuration, HttpContext context) =>
+{
+    var keycloakAuthorizationUrl = configuration["Keycloak:AuthorizationUrl"];
+    var clientId = configuration["Keycloak:ClientId"];
+    var redirectUri = configuration["Keycloak:RedirectUri"];
+    var responseType = "token"; // Implicit Flow uses "token"
+    var scope = "openid profile"; // Scopes to request
+
+    var authorizationUrl = $"{keycloakAuthorizationUrl}?client_id={clientId}&redirect_uri={redirectUri}&response_type={responseType}&scope={scope}";
+
+    context.Response.Redirect(authorizationUrl);
+});
 
 app.UseRouting();
 app.UseAuthentication();

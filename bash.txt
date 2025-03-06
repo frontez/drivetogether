@@ -26,6 +26,7 @@ helm install keycloak oci://registry-1.docker.io/bitnamicharts/keycloak \
 docker run -p 8080:8080 -e KC_BOOTSTRAP_ADMIN_USERNAME=admin -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin quay.io/keycloak/keycloak:latest start-dev
 kubectl apply -f keycloak-deployment.yaml
 kubectl apply -f keycloak-service.yaml
+#конец
 
 kubectl apply -f userservice-deployment.yaml
 kubectl apply -f userservice.yaml

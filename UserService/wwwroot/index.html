@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Index</title>
+    <style>
+        /* Basic styling for buttons and content */
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login and Logout Buttons -->
+    <div id="auth-buttons">
+        <button id="login-button" class="hidden" onclick="login()">Login</button>
+        <button id="logout-button" class="hidden" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Placeholder for user data -->
+    <div id="user-data" class="hidden">
+        <h2>User Data:</h2>
+        <pre id="user-data-content"></pre>
+    </div>
+
+    <!-- Error message placeholder -->
+    <div id="error-message" class="hidden">
+        <h2>Error:</h2>
+        <p id="error-message-content"></p>
+    </div>
+
+    <script>
+        // Check if the user is authenticated (access token exists in localStorage)
+        function isAuthenticated() {
+            return !!localStorage.getItem('access_token');
+        }
+
+        // Update the UI based on authentication status
+        function updateUI() {
+            const loginButton = document.getElementById('login-button');
+            const logoutButton = document.getElementById('logout-button');
+            const userDataContainer = document.getElementById('user-data');
+            const errorMessageContainer = document.getElementById('error-message');
+
+            if (isAuthenticated()) {
+                // User is authenticated
+                loginButton.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+                userDataContainer.classList.remove('hidden');
+                errorMessageContainer.classList.add('hidden');
+            } else {
+                // User is not authenticated
+                loginButton.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+                userDataContainer.classList.add('hidden');
+                errorMessageContainer.classList.add('hidden');
+            }
+        }
+
+        // Redirect to the login page
+        function login() {
+            window.location.href = '/login'; // Replace with your login endpoint
+        }
+
+        // Logout the user by clearing the access token
+        function logout() {
+            localStorage.removeItem('access_token');
+            updateUI(); // Update the UI after logout
+            window.location.href = '/'; // Redirect to the home page
+        }
+
+        // Fetch user data from /users/me
+        function fetchUserData() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                displayError("No access token found.");
+                return;
+            }
+
+            fetch('/users/me', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Parse the JSON response
+                } else {
+                    throw new Error('Failed to fetch user data');
+                }
+            })
+            .then(data => {
+                console.log("User Data:", data);
+                displayUserData(data); // Display the user data
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                displayError(error.message);
+            });
+        }
+
+        // Display user data on the page
+        function displayUserData(data) {
+            const userDataContent = document.getElementById('user-data-content');
+            userDataContent.textContent = JSON.stringify(data, null, 2); // Pretty-print JSON
+            updateUI(); // Update the UI after fetching data
+        }
+
+        // Display an error message on the page
+        function displayError(message) {
+            const errorMessageContent = document.getElementById('error-message-content');
+            errorMessageContent.textContent = message;
+            document.getElementById('error-message').classList.remove('hidden');
+            updateUI(); // Update the UI after displaying an error
+        }
+
+        // Extract the access token from the URL fragment
+        function extractTokenFromFragment() {
+            const fragment = window.location.hash.substring(1);
+            const params = new URLSearchParams(fragment);
+            const accessToken = params.get('access_token');
+
+            if (accessToken) {
+                // Store the token in localStorage
+                console.log("Access Token:", accessToken);
+                localStorage.setItem('access_token', accessToken);
+                fetchUserData(); // Fetch and display user data
+            } else {
+                console.error("No access token found in the URL fragment.");
+                displayError("No access token found in the URL fragment.");
+            }
+        }
+
+        // Initialize the page
+        function init() {
+            updateUI(); // Update the UI based on authentication status
+            extractTokenFromFragment(); // Extract the token from the URL fragment (if present)
+        }
+
+        // Run the initialization when the page loads
+        init();
+    </script>
+</body>
+</html>

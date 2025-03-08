@@ -58,3 +58,5 @@ kubectl apply -f userservice-configmap.yaml
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialMigration
 dotnet ef database update
+
+kubectl rollout restart -n default deployment userservice

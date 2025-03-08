@@ -77,16 +77,46 @@
             }
         }
 
-        // Redirect to the login page
+        // Redirect to the login endpoint with the nonce
         function login() {
-            window.location.href = '/login'; // Replace with your login endpoint
+            const nonce = generateNonce(); // Generate a nonce
+            localStorage.setItem('nonce', nonce); // Store the nonce in localStorage
+
+            const loginUrl = `/login?nonce=${encodeURIComponent(nonce)}`;
+            window.location.href = loginUrl;
         }
 
-        // Logout the user by clearing the access token
+        // Logout the user by clearing the access token and using the id_token
         function logout() {
+            const idToken = localStorage.getItem('id_token'); // Retrieve the id_token
             localStorage.removeItem('access_token');
-            updateUI(); // Update the UI after logout
-            window.location.href = '/'; // Redirect to the home page
+            localStorage.removeItem('id_token'); // Clear the id_token
+
+            if (idToken) {
+                fetch('/logout', {
+                    method: 'GET',
+                    headers: {
+                        'X-ID-Token': idToken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Logout failed');
+                    }
+                    return response.json(); // Parse the JSON response
+                })
+                .then(data => {
+                    // Redirect to the Keycloak logout URL
+                    window.location.href = data.logoutUrl;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    displayError("Logout failed. Please try again.");
+                });
+            } else {
+                // If no id_token is found, just redirect to the home page
+                window.location.href = '/index.html';
+            }
         }
 
         // Fetch user data from /users/me
@@ -118,6 +148,8 @@
             .catch(error => {
                 console.error("Error:", error);
                 displayError(error.message);
+                localStorage.removeItem('access_token'); // Clear invalid token
+                updateUI(); // Update the UI to show login button
             });
         }
 
@@ -136,20 +168,53 @@
             updateUI(); // Update the UI after displaying an error
         }
 
-        // Extract the access token from the URL fragment
+        // Generate a random nonce
+        function generateNonce() {
+            const array = new Uint32Array(10);
+            window.crypto.getRandomValues(array);
+            return Array.from(array, dec => ('0' + dec.toString(16)).slice(-2)).join('');
+        }
+
+        // Extract the nonce from the id_token
+        function extractNonceFromIdToken(idToken) {
+            const payload = JSON.parse(atob(idToken.split('.')[1])); // Decode the JWT payload
+            return payload.nonce;
+        }
+
+        // Validate the nonce
+        function validateNonce(idToken) {
+            const nonceInToken = extractNonceFromIdToken(idToken);
+            const nonceInStorage = localStorage.getItem('nonce');
+
+            if (nonceInToken !== nonceInStorage) {
+                console.error("Nonce validation failed.");
+                return false;
+            }
+
+            return true;
+        }
+
+        // Extract the access token and id_token from the URL fragment
         function extractTokenFromFragment() {
             const fragment = window.location.hash.substring(1);
             const params = new URLSearchParams(fragment);
             const accessToken = params.get('access_token');
+            const idToken = params.get('id_token'); // Extract id_token
 
-            if (accessToken) {
-                // Store the token in localStorage
-                console.log("Access Token:", accessToken);
+            if (accessToken && idToken) {
+                // Validate the nonce
+                if (!validateNonce(idToken)) {
+                    displayError("Nonce validation failed.");
+                    return;
+                }
+
                 localStorage.setItem('access_token', accessToken);
-                fetchUserData(); // Fetch and display user data
+                localStorage.setItem('id_token', idToken); // Store id_token
+                history.replaceState(null, '', window.location.pathname);
+                fetchUserData();
             } else {
-                console.error("No access token found in the URL fragment.");
-                displayError("No access token found in the URL fragment.");
+                console.error("No access token or id_token found in the URL fragment.");
+                displayError("No access token or id_token found in the URL fragment.");
             }
         }
 

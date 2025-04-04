@@ -4,6 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using System.Threading;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DriveTogetherBot
 {
@@ -49,22 +50,20 @@ namespace DriveTogetherBot
         private async Task OnUpdate(Update update)
         {
             Console.WriteLine("OnUpdate fired!");
-            await Task.CompletedTask;
 
-            // switch (update.Type)
-            // {
-            //     case UpdateType.Message:
+             switch (update.Type)
+             {
+                 case UpdateType.Message:
+                     if (update.Message is not { } message)
+                         return;
+                     MessageProcessor antispamProcessor = new MessageProcessor(_botClient, message, _cts.Token);
+                     await antispamProcessor.Process();
+                     break;
 
-            //         if (update.Message is not { } message)
-            //             return;
-            //         AntispamProcessor antispamProcessor = new AntispamProcessor(_botClient, message, _cts.Token);
-            //         await antispamProcessor.Process();
-            //         break;
-
-            //     //case UpdateType.MessageReaction:
-            //     //    Console.WriteLine("Добавлена реакция на сообщение");
-            //     //    break;
-            // }
+                default:
+                    await Task.CompletedTask;
+                    break;
+            }            
         }
 
         private string GetTelegramToken()

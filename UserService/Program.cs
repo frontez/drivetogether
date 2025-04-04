@@ -102,7 +102,9 @@ app.MapGet("/logout", (HttpContext context, IConfiguration configuration) =>
 app.MapGet("/profile", (IConfiguration configuration) =>
 {
     var profileUrl = configuration["Keycloak:ProfileUrl"];
-    return Results.Redirect(profileUrl);
+    var redirectUri = configuration["Keycloak:RedirectUri"];
+    var fullProfileUrl = $"{profileUrl}?redirect_uri={redirectUri}";
+    return Results.Ok(new { profileUrl = fullProfileUrl });
 }).RequireAuthorization();
 
 // Use the CORS policy

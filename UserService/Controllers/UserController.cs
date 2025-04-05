@@ -58,9 +58,8 @@ public class UserController : ControllerBase
         }       
 
         user.Username = updatedUser.Username;
-        user.FirstName = updatedUser.FirstName;
-        user.LastName = updatedUser.LastName;
-        user.Email = updatedUser.Email;
+        user.TelegramId = updatedUser.TelegramId;
+        user.Name = updatedUser.Name;
         user.Phone = updatedUser.Phone;
 
         _context.Entry(user).State = EntityState.Modified;

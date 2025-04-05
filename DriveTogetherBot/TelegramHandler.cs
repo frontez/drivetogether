@@ -9,18 +9,29 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace DriveTogetherBot
 {
     public sealed class TelegramHandler 
-    {
+    {        
+        private static Lazy<TelegramHandler> _lazyTelegramHandler = new Lazy<TelegramHandler>(() => new TelegramHandler());
+        private static IConfiguration _configuration;
+
         TelegramBotClient _botClient;
         CancellationTokenSource _cts;
         bool _onShutdownRegistered = false;
 
         private TelegramHandler()
         {
+            if (_configuration == null)
+            {
+                throw new InvalidOperationException("Configuration must be initialized first. Call Initialize() before getting an instance.");
+            }
+
             _cts = new();
             _botClient = new TelegramBotClient(GetTelegramToken(), cancellationToken: _cts.Token);
         }
 
-        private static Lazy<TelegramHandler> _lazyTelegramHandler = new Lazy<TelegramHandler>(() => new TelegramHandler());
+        public static void Initialize(IConfiguration configuration)
+        {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        }
 
         public static TelegramHandler GetInstance(CancellationToken cancellationToken)
         {
@@ -56,7 +67,7 @@ namespace DriveTogetherBot
                  case UpdateType.Message:
                      if (update.Message is not { } message)
                          return;
-                     MessageProcessor antispamProcessor = new MessageProcessor(_botClient, message, _cts.Token);
+                     MessageProcessor antispamProcessor = new MessageProcessor(_botClient, message, _cts.Token, _configuration);
                      await antispamProcessor.Process();
                      break;
 

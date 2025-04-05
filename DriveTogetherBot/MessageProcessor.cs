@@ -1,21 +1,28 @@
 using System;
+using System.Text;
+using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Net.Http.Headers;
 
 namespace DriveTogetherBot;
 
 public class MessageProcessor
 {
-    private TelegramBotClient _botClient;    
+    private IConfiguration _configuration;
+    private TelegramBotClient _botClient;     
+    private readonly HttpClient _httpClient;   
     private readonly Dictionary<long, User> _userStates = new();
     private Message _message;
     private CancellationToken _token;
 
-    public MessageProcessor(TelegramBotClient botClient, Message message, CancellationToken token)
+    public MessageProcessor(TelegramBotClient botClient, Message message, CancellationToken token, IConfiguration configuration)
     {
-        _botClient = botClient;
+        _configuration = configuration;
+        _botClient = botClient;        
+        _httpClient = new HttpClient();
         _message = message;
         _token = token;
     }
@@ -31,9 +38,8 @@ public class MessageProcessor
         if (Common.Users.TryGetValue(UserId, out User user))
         {
             await ProcessFormStep(messageText, user);
-            return;
         }
-        else if (messageText.StartsWith('/'))
+        if (messageText.StartsWith('/'))
            await OnCommand(messageText, _message, UserId);
     }
 
@@ -46,7 +52,7 @@ public class MessageProcessor
                 user.CurrentStep = FormStep.Phone;
                 await _botClient.SendMessage(
                     _message.Chat,
-                    text: "Здорово! Теперь введите ваш номер телефона:");
+                    text: "Теперь введите ваш номер телефона:");
                 break;
                 
             case FormStep.Phone:
@@ -64,6 +70,8 @@ public class MessageProcessor
             text: $"Спасибо! Вот что вы ввели:\n" +
                   $"Имя: {user.Name}\n" +
                   $"Телефон: {user.Phone}");
+
+        await RegisterUser(user);
     }
 
     private async Task OnCommand(string messageText, Message message, long UserId)
@@ -75,16 +83,73 @@ public class MessageProcessor
             user.Id = UserId;
             user.Username = message.From.Username;
 
-            Common.Users.TryAdd(UserId, user);
-            
-            await _botClient.SendMessage(
-                _message.Chat,
-                text: "Введите ваше имя:",
-                cancellationToken: _token);
+            if (Common.Users.TryAdd(UserId, user))
+            {
+                await _botClient.SendMessage(
+                    _message.Chat,
+                    text: "Введите ваше имя:",
+                    cancellationToken: _token);
+            }
+            else
+            {
+                if (Common.Users.TryGetValue(UserId, out User existingUser))
+                {
+                    await _botClient.SendMessage(
+                        _message.Chat,
+                        text: $"Вы уже зарегистрированы.\n" +
+                            $"Имя: {existingUser.Name}\n" +
+                            $"Телефон: {existingUser.Phone}");
+                }
+                else
+                {
+                    await _botClient.SendMessage(
+                        _message.Chat,
+                        text: $"Не удалось зарегистрироваться.\n");
+                }
+            }  
         }
         else
         {
             await Task.CompletedTask;
         }
+    }
+
+    private async Task<string> RegisterUser(User telegramUser)
+    {
+        var json = JsonSerializer.Serialize(telegramUser);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var token = await GetServiceTokenAsync();
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Typically this would be a POST request to /users or /api/users endpoint
+        var response = await _httpClient.PostAsync(_configuration["UserService:RegisterUrl"], content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+        }
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return $"Successfully registered! Welcome, {telegramUser.Username}";
+    }
+
+    public async Task<string> GetServiceTokenAsync()
+    {
+        var request = new Dictionary<string, string>
+        {
+            {"client_id", _configuration["Keycloak:ClientId"]},
+            {"client_secret", _configuration["Keycloak:ClientSecret"]},
+            {"grant_type", "client_credentials"}
+        };
+        
+        var response = await _httpClient.PostAsync(
+            _configuration["Keycloak:TokenUrl"],
+            new FormUrlEncodedContent(request));
+        
+        var content = await response.Content.ReadAsStringAsync();
+        var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(content);
+        return tokenResponse.access_token;
     }
 }

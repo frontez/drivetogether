@@ -74,7 +74,6 @@ app.MapGet("/login", (IConfiguration configuration, HttpContext context, string 
 
     // Include the nonce in the authorization URL
     var authorizationUrl = $"{keycloakAuthorizationUrl}?client_id={clientId}&redirect_uri={redirectUri}&response_type={responseType}&scope={scope}&nonce={nonce}";
-
     context.Response.Redirect(authorizationUrl);
 });
 

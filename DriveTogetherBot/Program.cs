@@ -15,4 +15,6 @@ if (lifetime != null)
     telegramHandler.Start();
 }
 
+app.MapGet("/health/", () => Results.Json(new { status = "OK" }));
+
 app.Run();

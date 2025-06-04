@@ -31,6 +31,9 @@ kubectl apply -f keycloak-service.yaml
 kubectl apply -f userservice-deployment.yaml
 kubectl apply -f userservice.yaml
 
+kubectl apply -f drivetogetherbotservice-deployment.yaml
+kubectl apply -f drivetogetherbotservice.yaml
+
 #только для тестирования UserService отдельно
 kubectl apply -f userservice-configmap.yaml
 kubectl apply -f secret.yaml
@@ -60,3 +63,11 @@ dotnet ef migrations add InitialMigration
 dotnet ef database update
 
 kubectl rollout restart -n default deployment userservice
+kubectl rollout restart -n default deployment drivetogetherbotservice
+
+------
+
+kubectl create secret generic my-app-secrets \
+  --from-literal=TelegramToken='API_KEY'
+
+kubectl delete secret my-app-secrets 

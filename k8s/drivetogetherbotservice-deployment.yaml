@@ -17,6 +17,12 @@ spec:
         image: docker.io/frontez/drivetogetherbotservice:latest
         ports:
         - containerPort: 8000
+        env:
+        - name: TelegramToken
+          valueFrom:
+            secretKeyRef:
+              name: my-app-secrets
+              key: TelegramToken
         livenessProbe:
           httpGet:
             path: /health

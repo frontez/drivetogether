@@ -36,6 +36,19 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://+:443;http://+:8000",
+        "ASPNETCORE_HTTPS_PORT": "443",
+        "ASPNETCORE_HTTP_PORTS": "8000"
+      },
+      "httpPort": 8000,
+      "useSSL": true,
+      "sslPort": 50031
     }
   }
 }

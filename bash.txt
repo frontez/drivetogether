@@ -66,6 +66,7 @@ dotnet ef database update
 
 kubectl rollout restart -n default deployment userservice
 kubectl rollout restart -n default deployment drivetogetherbotservice
+kubectl rollout restart -n default deployment tripservice
 
 ------
 
@@ -76,3 +77,7 @@ kubectl delete secret my-app-secrets
 
 kubectl port-forward --namespace default svc/user-db-postgresql 5432:5432
 kubectl port-forward --namespace default svc/trip-db-postgresql 5433:5432
+
+
+kubectl apply -f tripservice-deployment.yaml
+kubectl apply -f tripservice.yaml

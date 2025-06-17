@@ -84,37 +84,7 @@ public class MessageProcessor
                 case TripStep.TripEndLocation:
                     user.TripOffer.EndLocationId = Convert.ToInt64(input);
                     user.TripStepEnum = TripStep.DepartureDate;
-                    await _botClient.SendMessage(
-                        _message.Chat,
-                        text: "Введите дату поездки в формате YYYY-MM-DD:",
-                        replyMarkup: new ForceReplyMarkup { InputFieldPlaceholder = "YYYY-MM-DD" }
-                        );
-                    break;
-
-                case TripStep.DepartureDate:
-                    if (DateTime.TryParse(input, out var selectedDate))
-                    {
-                        user.TripOffer.DepartureTime = selectedDate;
-                        user.TripStepEnum = TripStep.DepartureTime;
-                        await _botClient.SendMessage(
-                            _message.Chat,
-                            text: "Введите время поездки (в формате HH:MI - например 12:00):");
-                    }
-                    else
-                    {
-                        await _botClient.SendMessage(
-                            _message.Chat,
-                            text: "Некорректный формат даты. Нужно ввести в формате YYYY-MM-DD."
-                        );
-                    }
-                    break;
-
-                case TripStep.DepartureTime:
-                    user.TripOffer.StartLocationId = Convert.ToInt64(input);
-                    user.TripStepEnum = TripStep.AvailableSeats;
-                    await _botClient.SendMessage(
-                        _message.Chat,
-                        text: "Введите количество свободных мест:");
+                    await SendDateSelectionAsync(_message.Chat.Id);
                     break;
 
                 case TripStep.AvailableSeats:
@@ -139,9 +109,41 @@ public class MessageProcessor
                     await _botClient.SendMessage(
                         _message.Chat,
                         text: "Успешно!");
+
+                    await CreateTrip(user.TripOffer);
+                    user.TripOffer = null;
+                    
                     break;
             }
         }
+    }
+
+    public async Task SendDateSelectionAsync(long chatId)
+    {
+        var today = DateTime.Today;
+        var buttons = new List<InlineKeyboardButton[]>();
+
+        // Create 14 buttons (2 rows of 7)
+        for (int i = 0; i < 14; i += 7)
+        {
+            var row = new List<InlineKeyboardButton>();
+            for (int j = 0; j < 7 && (i + j) < 14; j++)
+            {
+                var date = today.AddDays(i + j);
+                var buttonText = date.ToString("dd.MM");
+                var callbackData = $"datepick_{date:yyyy-MM-dd}";
+                row.Add(InlineKeyboardButton.WithCallbackData(buttonText, callbackData));
+            }
+            buttons.Add(row.ToArray());
+        }
+
+        var markup = new InlineKeyboardMarkup(buttons);
+
+        await _botClient.SendMessage(
+            chatId: chatId,
+            text: "📅 Выберите дату поездки:",
+            replyMarkup: markup
+        );
     }
 
     private async Task ProcessCompletedForm(User user)
@@ -310,7 +312,18 @@ public class MessageProcessor
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+
+                try
+                {
+                    var errorObject = JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent);
+                    var detailedError = JsonSerializer.Serialize(errorObject, new JsonSerializerOptions { WriteIndented = true });
+                    throw new Exception($"API error: {response.StatusCode} - {detailedError}");
+                }
+                catch
+                {
+                    // If not JSON, just show the raw content
+                    throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+                }
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -318,9 +331,30 @@ public class MessageProcessor
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
-            throw;
+            // Log the full exception including inner exceptions
+            var fullError = GetFullExceptionDetails(ex);
+            Console.WriteLine(fullError);
+            throw new Exception(fullError, ex);
         }
+    }
+
+    private string GetFullExceptionDetails(Exception ex)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine(ex.Message);
+        sb.AppendLine(ex.StackTrace);
+
+        // Recursively get inner exception details
+        var inner = ex.InnerException;
+        while (inner != null)
+        {
+            sb.AppendLine("--- Inner Exception ---");
+            sb.AppendLine(inner.Message);
+            sb.AppendLine(inner.StackTrace);
+            inner = inner.InnerException;
+        }
+
+        return sb.ToString();
     }
 
 

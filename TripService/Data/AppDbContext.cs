@@ -62,5 +62,11 @@ public class AppDbContext : DbContext
             .WithOne(tr => tr.Trip)
             .HasForeignKey(tr => tr.TripId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TripOffer>()
+            .Property(t => t.DepartureTime)
+            .HasConversion(
+                v => v.ToUniversalTime(), // Convert to UTC when saving
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc).ToLocalTime()); // Mark as UTC when reading
     }
 }

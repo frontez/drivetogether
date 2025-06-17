@@ -62,19 +62,26 @@ namespace DriveTogetherBot
         {
             Console.WriteLine("OnUpdate fired!");
 
-             switch (update.Type)
-             {
-                 case UpdateType.Message:
-                     if (update.Message is not { } message)
-                         return;
-                     MessageProcessor antispamProcessor = new MessageProcessor(_botClient, message, _cts.Token, _configuration);
-                     await antispamProcessor.Process();
-                     break;
+            switch (update.Type)
+            {
+                case UpdateType.Message:
+                    if (update.Message is not { } message)
+                        return;
+                    MessageProcessor antispamProcessor = new MessageProcessor(_botClient, message, _cts.Token, _configuration);
+                    await antispamProcessor.Process();
+                    break;
+                    
+                case UpdateType.CallbackQuery:
+                    if (update.CallbackQuery is not { } callbackQuery)
+                        return;
+                    CallbackQueryProcessor callbackQueryProcessor = new CallbackQueryProcessor(_botClient, callbackQuery, _cts.Token, _configuration);
+                    await callbackQueryProcessor.Process();
+                    break;
 
                 default:
                     await Task.CompletedTask;
                     break;
-            }            
+            }          
         }
 
         private string GetTelegramToken()

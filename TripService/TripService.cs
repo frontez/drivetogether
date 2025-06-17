@@ -82,7 +82,7 @@ public class TripService : ITripService
         return tripRequest;
     }
 
-    public async Task ApproveTripRequestAsync(int requestId, string driverId)
+    public async Task ApproveTripRequestAsync(long requestId, long driverId)
     {
         var request = await _context.TripRequests
             .Include(tr => tr.TripOffer)
@@ -104,7 +104,7 @@ public class TripService : ITripService
         await CheckAndConfirmTripAsync(request.TripOfferId);
     }
 
-    public async Task RejectTripRequestAsync(int requestId, string driverId)
+    public async Task RejectTripRequestAsync(long requestId, long driverId)
     {
         var request = await _context.TripRequests
             .Include(tr => tr.TripOffer)
@@ -120,7 +120,7 @@ public class TripService : ITripService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<Trip> GetTripDetailsAsync(int tripId)
+    public async Task<Trip> GetTripDetailsAsync(long tripId)
     {
         return await _context.Trips
             .Include(t => t.TripOffer)
@@ -129,7 +129,7 @@ public class TripService : ITripService
             .FirstOrDefaultAsync(t => t.Id == tripId);
     }
 
-    public async Task<IEnumerable<TripRequest>> GetTripRequestsForOfferAsync(int tripOfferId, string driverId)
+    public async Task<IEnumerable<TripRequest>> GetTripRequestsForOfferAsync(long tripOfferId, long driverId)
     {
         var tripOffer = await _context.TripOffers.FindAsync(tripOfferId);
         if (tripOffer == null || tripOffer.DriverId != driverId)
@@ -141,7 +141,7 @@ public class TripService : ITripService
             .ToListAsync();
     }
 
-    public async Task CancelTripOfferAsync(int tripOfferId, string driverId)
+    public async Task CancelTripOfferAsync(long tripOfferId, long driverId)
     {
         var tripOffer = await _context.TripOffers
             .Include(to => to.TripRequests)
@@ -163,7 +163,7 @@ public class TripService : ITripService
         await _context.SaveChangesAsync();
     }
 
-    private async Task CheckAndConfirmTripAsync(int tripOfferId)
+    private async Task CheckAndConfirmTripAsync(long tripOfferId)
     {
         var tripOffer = await _context.TripOffers
             .Include(to => to.TripRequests)
@@ -197,7 +197,7 @@ public class TripService : ITripService
         }
     }
 
-    public async Task<TripOfferDetailsDTO> GetTripOfferByIdAsync(int id)
+    public async Task<TripOfferDetailsDTO> GetTripOfferByIdAsync(long id)
     {
         var offer = await _context.TripOffers
             .Include(to => to.StartLocation)

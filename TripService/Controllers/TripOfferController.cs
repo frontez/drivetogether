@@ -68,7 +68,7 @@ namespace TripService.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> CancelOffer(int id, [FromQuery] string driverId)
+        public async Task<IActionResult> CancelOffer(long id, [FromQuery] long driverId)
         {
             try
             {
@@ -82,7 +82,7 @@ namespace TripService.Controllers
         }
 
         [HttpGet("{id}/requests")]
-        public async Task<ActionResult<IEnumerable<TripRequest>>> GetRequests(int id, [FromQuery] string driverId)
+        public async Task<ActionResult<IEnumerable<TripRequest>>> GetRequests(long id, [FromQuery] long driverId)
         {
             try
             {

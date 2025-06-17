@@ -36,7 +36,7 @@ namespace TripService.Controllers
         }
 
         [HttpPut("{id}/approve")]
-        public async Task<IActionResult> ApproveRequest(int id, [FromQuery] string driverId)
+        public async Task<IActionResult> ApproveRequest(long id, [FromQuery] long driverId)
         {
             try
             {
@@ -50,7 +50,7 @@ namespace TripService.Controllers
         }
 
         [HttpPut("{id}/reject")]
-        public async Task<IActionResult> RejectRequest(int id, [FromQuery] string driverId)
+        public async Task<IActionResult> RejectRequest(long id, [FromQuery] long driverId)
         {
             try
             {

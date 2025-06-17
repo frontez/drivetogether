@@ -7,13 +7,13 @@ namespace TripService.Models;
 public class Trip
 {
     [Key]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [Required]
-    public int TripOfferId { get; set; }
+    public long TripOfferId { get; set; }
 
     [Required]
-    public string DriverId { get; set; }
+    public long DriverId { get; set; }
 
     [Required]
     public DateTime StartTime { get; set; }

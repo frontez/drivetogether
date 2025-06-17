@@ -7,7 +7,7 @@ namespace TripService.DTOs;
 public class TripOfferDTO
 {
     [Required]
-    public string DriverId { get; set; }
+    public long DriverId { get; set; }
 
     [Required]
     public long StartLocationId { get; set; }
@@ -30,8 +30,8 @@ public class TripOfferDTO
 
     public class TripOfferDetailsDTO
     {
-        public int Id { get; set; }
-        public string DriverId { get; set; }
+        public long Id { get; set; }
+        public long DriverId { get; set; }
         public LocationDTO StartLocation { get; set; }
         public LocationDTO EndLocation { get; set; }
         public DateTime DepartureTime { get; set; }

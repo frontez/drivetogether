@@ -8,10 +8,10 @@ namespace TripService.Models;
 public class TripOffer
 {
     [Key]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [Required]
-    public string DriverId { get; set; }
+    public long DriverId { get; set; }
 
     [Required]
     [ForeignKey("StartLocation")]

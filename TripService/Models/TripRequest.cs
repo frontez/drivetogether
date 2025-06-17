@@ -7,13 +7,13 @@ namespace TripService.Models;
 public class TripRequest
 {
     [Key]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     [Required]
-    public int TripOfferId { get; set; }
+    public long TripOfferId { get; set; }
 
     [Required]
-    public string PassengerId { get; set; }
+    public long PassengerId { get; set; }
 
     [Required]
     public int RequestedSeats { get; set; }
@@ -23,7 +23,7 @@ public class TripRequest
 
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
-    public int? TripId { get; set; }
+    public long? TripId { get; set; }
 
     public TripOffer TripOffer { get; set; }
     public Trip Trip { get; set; }

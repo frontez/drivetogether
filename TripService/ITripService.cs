@@ -9,10 +9,10 @@ public interface ITripService
     Task<TripOffer> CreateTripOfferAsync(TripOfferDTO tripOfferDTO);
     Task<IEnumerable<TripOffer>> GetAvailableTripOffersAsync();
     Task<TripRequest> CreateTripRequestAsync(TripRequestDTO tripRequestDTO);
-    Task ApproveTripRequestAsync(int requestId, string driverId);
-    Task RejectTripRequestAsync(int requestId, string driverId);
-    Task<Trip> GetTripDetailsAsync(int tripId);
-    Task<IEnumerable<TripRequest>> GetTripRequestsForOfferAsync(int tripOfferId, string driverId);
-    Task CancelTripOfferAsync(int tripOfferId, string driverId);
-    Task<TripOfferDetailsDTO> GetTripOfferByIdAsync(int id);
+    Task ApproveTripRequestAsync(long requestId, long driverId);
+    Task RejectTripRequestAsync(long requestId, long driverId);
+    Task<Trip> GetTripDetailsAsync(long tripId);
+    Task<IEnumerable<TripRequest>> GetTripRequestsForOfferAsync(long tripOfferId, long driverId);
+    Task CancelTripOfferAsync(long tripOfferId, long driverId);
+    Task<TripOfferDetailsDTO> GetTripOfferByIdAsync(long id);
 }

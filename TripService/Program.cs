@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using EFCore.NamingConventions;
 using TripService.Data;
 using Prometheus;
+using TripService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +15,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options => options
     .UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
     .UseSnakeCaseNamingConvention());
-
+builder.Services.AddScoped<ITripService, TripService.TripService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

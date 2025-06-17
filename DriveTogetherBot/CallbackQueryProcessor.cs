@@ -45,6 +45,14 @@ public class CallbackQueryProcessor
         {
             await HandleTimeSelectionAsync(_callbackQuery);
         }
+        else if (_callbackQuery.Data.StartsWith("startlocationpick_"))
+        {
+            await HandleStartLocationSelectionAsync(_callbackQuery);
+        }
+        else if (_callbackQuery.Data.StartsWith("endlocationpick_"))
+        {
+            await HandleEndLocationSelectionAsync(_callbackQuery);
+        }
     }
 
     public async Task HandleDateSelectionAsync(CallbackQuery callbackQuery)
@@ -53,6 +61,79 @@ public class CallbackQueryProcessor
         var selectedDate = DateTime.Parse(selectedDateStr);
         
         await SendTimeSelectionAsync(callbackQuery.Message.Chat.Id, selectedDate);    
+    }
+
+    public async Task HandleStartLocationSelectionAsync(CallbackQuery callbackQuery)
+    {
+        var selectedStartLocationId = Convert.ToInt64(callbackQuery.Data.Split('_')[1]);   
+
+        await SendEndLocationSelectionAsync(callbackQuery.Message.Chat.Id, selectedStartLocationId);    
+    }
+    
+    public async Task HandleEndLocationSelectionAsync(CallbackQuery callbackQuery)
+    {
+        var selectedStartLocationId = Convert.ToInt64(callbackQuery.Data.Split('_')[1]);   
+        var selectedEndLocationId = Convert.ToInt64(callbackQuery.Data.Split('_')[2]);   
+
+        var userId = callbackQuery?.From?.Id;
+
+        if (Common.Users.TryGetValue(userId.Value, out User user))
+        {
+            user.TripOffer.StartLocationId = selectedStartLocationId;
+            user.TripOffer.EndLocationId = selectedEndLocationId;
+            user.TripStepEnum = TripStep.DepartureDate;
+            await SendDateSelectionAsync(callbackQuery.Message.Chat.Id);
+        }   
+    }
+
+    public async Task SendDateSelectionAsync(long chatId)
+    {
+        var today = DateTime.Today;
+        var buttons = new List<InlineKeyboardButton[]>();
+
+        // Create 14 buttons (2 rows of 7)
+        for (int i = 0; i < 14; i += 7)
+        {
+            var row = new List<InlineKeyboardButton>();
+            for (int j = 0; j < 7 && (i + j) < 14; j++)
+            {
+                var date = today.AddDays(i + j);
+                var buttonText = date.ToString("dd.MM");
+                var callbackData = $"datepick_{date:yyyy-MM-dd}";
+                row.Add(InlineKeyboardButton.WithCallbackData(buttonText, callbackData));
+            }
+            buttons.Add(row.ToArray());
+        }
+
+        var markup = new InlineKeyboardMarkup(buttons);
+
+        await _botClient.SendMessage(
+            chatId: chatId,
+            text: "📅 Выберите дату поездки:",
+            replyMarkup: markup
+        );
+    }
+
+    public async Task SendEndLocationSelectionAsync(long chatId, long selectedStartLocationId)
+    {
+        var buttons = new List<InlineKeyboardButton>();
+
+        foreach (var endlocation in Common.Locations.Where(x => x.Key != selectedStartLocationId))
+        {
+            var buttonText = endlocation.Value;
+            var callbackData = $"endlocationpick_{selectedStartLocationId}_{endlocation.Key}";
+            var button = InlineKeyboardButton.WithCallbackData(buttonText, callbackData);
+
+            buttons.Add(button);
+        }
+
+        var markup = new InlineKeyboardMarkup(buttons);
+
+        await _botClient.SendMessage(
+            chatId: chatId,
+            text: "Выберите пункт назначения:",
+            replyMarkup: markup
+        );
     }
 
     public async Task SendTimeSelectionAsync(long chatId, DateTime selectedDate)

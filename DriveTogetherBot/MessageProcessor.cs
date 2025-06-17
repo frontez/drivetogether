@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Net;
 using DriveTogetherBot.Entities;
 using User = DriveTogetherBot.Entities.User;
+using System.Collections.Concurrent;
 
 namespace DriveTogetherBot;
 
@@ -73,20 +74,6 @@ public class MessageProcessor
         {
             switch (user.TripStepEnum)
             {
-                case TripStep.TripStartLocation:
-                    user.TripOffer.StartLocationId = Convert.ToInt64(input);
-                    user.TripStepEnum = TripStep.TripEndLocation;
-                    await _botClient.SendMessage(
-                        _message.Chat,
-                        text: "Введите пункт назначения (число):");
-                    break;
-
-                case TripStep.TripEndLocation:
-                    user.TripOffer.EndLocationId = Convert.ToInt64(input);
-                    user.TripStepEnum = TripStep.DepartureDate;
-                    await SendDateSelectionAsync(_message.Chat.Id);
-                    break;
-
                 case TripStep.AvailableSeats:
                     user.TripOffer.AvailableSeats = Convert.ToInt32(input);
                     user.TripStepEnum = TripStep.Price;
@@ -243,15 +230,14 @@ public class MessageProcessor
                 CurrentUser.TripOffer.DriverId = UserId;
                 CurrentUser.TripStepEnum = TripStep.TripStartLocation;
 
-                await _botClient.SendMessage(
-                    _message.Chat,
-                    text: "Введите пункт отправления (число):");
+                await GetAllLocations();
+                await SendStartLocationSelectionAsync(_message.Chat.Id);
             }
             else
             {
                 await _botClient.SendMessage(
                     _message.Chat,
-                    text: $"У вас уже есть поездка.\n");
+                    text: $"У вас уже есть поездка.\n");                
             }
         }
         else if (messageText == "/my_trip")
@@ -293,8 +279,64 @@ public class MessageProcessor
         }
     }
 
+    public async Task SendStartLocationSelectionAsync(long chatId)
+    {
+        var buttons = new List<InlineKeyboardButton>();
 
+        foreach (var location in Common.Locations)
+        {
+            var buttonText = location.Value;
+            var callbackData = $"startlocationpick_{location.Key}";
+            var button = InlineKeyboardButton.WithCallbackData(buttonText, callbackData);
 
+            buttons.Add(button);
+        }
+        
+        var markup = new InlineKeyboardMarkup(buttons);
+
+        await _botClient.SendMessage(
+            chatId: chatId,
+            text: "Выберите пункт отправления:",
+            replyMarkup: markup
+        );
+    }
+
+    private async Task GetAllLocations()
+    {
+        try
+        {
+            var token = await GetServiceTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Assuming your UserService base URL is the same as RegisterUrl without the last segment
+            var getAllUsersUrl = _configuration["TripService:LocationUrl"]?.TrimEnd('/');
+
+            var response = await _httpClient.GetAsync(getAllUsersUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var locations = JsonSerializer.Deserialize<List<Entities.Location>>(responseContent, options);
+
+            foreach (var location in locations)
+            {
+                Common.Locations.TryAdd(location.Id, location.Name);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
+            throw;
+        }
+    }
 
     private async Task<string> CreateTrip(TripOffer trip)
     {

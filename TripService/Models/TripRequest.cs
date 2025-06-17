@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using TripService.Enums;
 
 namespace TripService.Models;
@@ -24,7 +25,10 @@ public class TripRequest
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     public long? TripId { get; set; }
-
+    
+    [JsonIgnore]
     public TripOffer TripOffer { get; set; }
+
+    [JsonIgnore]
     public Trip Trip { get; set; }
 }

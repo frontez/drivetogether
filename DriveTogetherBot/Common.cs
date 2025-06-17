@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using DriveTogetherBot.Entities;
 
 namespace DriveTogetherBot;
 

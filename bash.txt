@@ -46,6 +46,7 @@ helm install nginx ingress-nginx/ingress-nginx --namespace ingress-nginx -f ngin
 kubectl apply -f drivetogether-ingress.yaml
 
 helm install user-db oci://registry-1.docker.io/bitnamicharts/postgresql -f values.yaml
+helm install trip-db oci://registry-1.docker.io/bitnamicharts/postgresql -f trip-values.yaml
 
 Дополнительно:
 Нужно указать в system32/drivers/etc/hosts
@@ -57,6 +58,7 @@ helm install user-db oci://registry-1.docker.io/bitnamicharts/postgresql -f valu
 dotnet build
 
 kubectl apply -f userservice-configmap.yaml
+kubectl apply -f tripservice-configmap.yaml
 
 dotnet tool install --global dotnet-ef
 dotnet ef migrations add InitialMigration
@@ -71,3 +73,5 @@ kubectl create secret generic my-app-secrets \
   --from-literal=TelegramToken='API_KEY'
 
 kubectl delete secret my-app-secrets 
+
+kubectl port-forward --namespace default svc/user-db-postgresql 5432:5432

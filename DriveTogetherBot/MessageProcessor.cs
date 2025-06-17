@@ -6,6 +6,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Net.Http.Headers;
+using System.Diagnostics;
 
 namespace DriveTogetherBot;
 
@@ -78,6 +79,8 @@ public class MessageProcessor
     {
         if (messageText == "/register")
         {
+            Console.WriteLine("register is used");
+            
             User user = new User();
             user.CurrentStep = FormStep.Name;
             user.Id = UserId;
@@ -108,6 +111,18 @@ public class MessageProcessor
                 }
             }  
         }
+        else if (messageText == "/users")
+        {
+            Console.WriteLine("users is used");
+
+            var users = await GetAllUsers();
+
+            string usersLine = string.Join("\n", users.Select(x=>x.Username));
+
+            await _botClient.SendMessage(
+                _message.Chat,
+                text: $"Пользователи:\n" + usersLine);
+        }
         else
         {
             await Task.CompletedTask;
@@ -116,23 +131,64 @@ public class MessageProcessor
 
     private async Task<string> RegisterUser(User telegramUser)
     {
-        var json = JsonSerializer.Serialize(telegramUser);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var token = await GetServiceTokenAsync();
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        // Typically this would be a POST request to /users or /api/users endpoint
-        var response = await _httpClient.PostAsync(_configuration["UserService:RegisterUrl"], content);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var errorContent = await response.Content.ReadAsStringAsync();
-            throw new Exception($"API error: {response.StatusCode} - {errorContent}");
-        }
+            var json = JsonSerializer.Serialize(telegramUser);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return $"Successfully registered! Welcome, {telegramUser.Username}";
+            var token = await GetServiceTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Typically this would be a POST request to /users or /api/users endpoint
+            var response = await _httpClient.PostAsync(_configuration["UserService:RegisterUrl"], content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return $"Successfully registered! Welcome, {telegramUser.Username}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
+            throw;
+        }
+    }
+
+    private async Task<List<User>> GetAllUsers()
+    {
+        try
+        {
+            var token = await GetServiceTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Assuming your UserService base URL is the same as RegisterUrl without the last segment
+            var getAllUsersUrl = _configuration["UserService:RegisterUrl"].TrimEnd('/');
+
+            var response = await _httpClient.GetAsync(getAllUsersUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return JsonSerializer.Deserialize<List<User>>(responseContent, options) ?? new List<User>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
+            throw;
+        }
     }
 
     public async Task<string> GetServiceTokenAsync()
@@ -143,11 +199,11 @@ public class MessageProcessor
             {"client_secret", _configuration["Keycloak:ClientSecret"]},
             {"grant_type", "client_credentials"}
         };
-        
+
         var response = await _httpClient.PostAsync(
             _configuration["Keycloak:TokenUrl"],
             new FormUrlEncodedContent(request));
-        
+
         var content = await response.Content.ReadAsStringAsync();
         var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(content);
         return tokenResponse.access_token;

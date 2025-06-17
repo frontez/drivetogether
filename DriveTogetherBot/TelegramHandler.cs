@@ -55,7 +55,7 @@ namespace DriveTogetherBot
             };
 
             _botClient.OnUpdate += OnUpdate;
-            Console.WriteLine("Bot is running. V:1.0.0");
+            Console.WriteLine("Bot is running. V:1.0.3");
         }
 
         private async Task OnUpdate(Update update)

@@ -4,7 +4,6 @@ namespace TripService.Models;
 
 public class Trip
 {
-    public long Id { get; set; }
-    public string DriverId { get; set; }
-    public int Seats {get; set;}
+    public long TripOfferId { get; set; }
+    public long TripRequestId { get; set; }
 }

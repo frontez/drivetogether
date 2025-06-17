@@ -34,6 +34,13 @@ public class UserController : ControllerBase
         return user;
     }
 
+    [HttpGet]    
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult<IEnumerable<User>>> GetAll()
+    {
+        return await _context.Users.ToListAsync();
+    }
+
     [HttpPost]    
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<IActionResult> Create([FromBody] User user)

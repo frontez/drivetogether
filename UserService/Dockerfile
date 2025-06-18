@@ -8,12 +8,12 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["UserService.csproj", "UserService/"]
-RUN dotnet restore "./UserService/UserService.csproj"
+RUN dotnet restore -v diag "./UserService/UserService.csproj"
 
 WORKDIR "/src/UserService"
 COPY . .
 
-RUN dotnet build "./UserService.csproj" -c $BUILD_CONFIGURATION -o /app/build 
+RUN dotnet build "./UserService.csproj" -c $BUILD_CONFIGURATION -o /app/build -v diag
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

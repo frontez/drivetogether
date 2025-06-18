@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-service-config
+data:
+  ConnectionStrings__DefaultConnection: "Server=notification-db-postgresql;Database=NotificationService;User Id=sa;Password=YourPassword;"

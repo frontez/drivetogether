@@ -82,6 +82,8 @@ kubectl delete secret my-app-secrets
 kubectl port-forward --namespace default svc/user-db-postgresql 5432:5432
 kubectl port-forward --namespace default svc/trip-db-postgresql 5433:5432
 
+kubectl port-forward --namespace default svc/rabbitmq 5672:5672
+
 
 kubectl apply -f tripservice-deployment.yaml
 kubectl apply -f tripservice.yaml

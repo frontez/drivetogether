@@ -253,12 +253,19 @@ public class MessageProcessor
             {
                 await _botClient.SendMessage(
                     _message.Chat,
-                    text: $"У вас уже есть поездка.\n");                
+                    text: $"У вас уже есть поездка.\n");
             }
         }
         else if (messageText == "/my_trip")
         {
             Console.WriteLine("my_trip is used");
+
+            var trips = await GetAllTrips(CurrentUser.Id);
+
+            await _botClient.SendMessage(
+                    _message.Chat,
+                    text: $"Ваши поездки:\n" +
+                        trips);
         }
         else if (messageText == "/cancel_trip")
         {
@@ -346,6 +353,61 @@ public class MessageProcessor
             {
                 Common.Locations.TryAdd(location.Id, location.Name);
             }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message + Environment.NewLine + ex.StackTrace);
+            throw;
+        }
+    }
+
+    private async Task<string> GetAllTrips(long UserId)
+    {
+        string result = string.Empty;
+        try
+        {
+            var token = await GetServiceTokenAsync();
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Assuming your UserService base URL is the same as RegisterUrl without the last segment
+            var getAllUsersUrl = _configuration["TripService:TripOfferUrl"]?.TrimEnd('/');
+
+            var response = await _httpClient.GetAsync(getAllUsersUrl);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"API error: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var tripOffers = JsonSerializer.Deserialize<List<Entities.TripOffer>>(responseContent, options).Where(x => x.DriverId == UserId);
+
+            var sb = new StringBuilder();
+            
+            foreach (var offer in tripOffers)
+            {
+                sb.AppendLine($"Маршрут: {offer.StartLocation?.Name ?? "Unknown"} → {offer.EndLocation?.Name ?? "Unknown"}");
+                sb.AppendLine($"Время отправления: {offer.DepartureTime:yyyy-MM-dd HH:mm}");
+                sb.AppendLine($"Доступно мест: {offer.AvailableSeats}");
+                sb.AppendLine($"Стоимость: {offer.PricePerSeat} РУБ");
+
+                if (!string.IsNullOrEmpty(offer.Description))
+                {
+                    sb.AppendLine($"Дополнительное описание: {offer.Description}");
+                }
+
+                sb.AppendLine();
+                sb.AppendLine("----------------------------");
+                sb.AppendLine();
+            }
+
+            result = sb.ToString();
+            return result;
         }
         catch (Exception ex)
         {

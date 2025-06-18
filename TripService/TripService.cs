@@ -41,10 +41,19 @@ public class TripService : ITripService
 
     public async Task<IEnumerable<TripOffer>> GetAvailableTripOffersAsync()
     {
-        return await _context.TripOffers
-            .Where(to => to.Status == TripStatus.Pending && to.AvailableSeats > 0)
-            .OrderBy(to => to.DepartureTime)
-            .ToListAsync();
+        var offers = await _context.TripOffers
+            .Include(to => to.StartLocation)
+            .Include(to => to.EndLocation)
+            .Include(to => to.TripRequests)
+            .Include(to => to.ConfirmedTrip).ToListAsync();
+
+        foreach (var offer in offers)
+        {
+            offer.StartLocation = new Location { Id = offer.StartLocation.Id, Name = offer.StartLocation.Name };
+            offer.EndLocation = new Location { Id = offer.EndLocation.Id, Name = offer.EndLocation.Name };
+        }
+        
+        return offers;
     }
 
     public async Task<TripRequest> CreateTripRequestAsync(TripRequestDTO tripRequestDTO)

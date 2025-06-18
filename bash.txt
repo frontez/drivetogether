@@ -81,3 +81,9 @@ kubectl port-forward --namespace default svc/trip-db-postgresql 5433:5432
 
 kubectl apply -f tripservice-deployment.yaml
 kubectl apply -f tripservice.yaml
+
+kubectl apply -f notificationservice-deployment.yaml
+kubectl apply -f notificationservice.yaml
+
+
+kubectl apply -f rabbitmq-deployment.yaml -f rabbitmq-service.yaml

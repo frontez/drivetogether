@@ -15,10 +15,12 @@ namespace TripService.Controllers
     public class TripOfferController : ControllerBase
     {
         private readonly ITripService _tripService;
+        private readonly MessagePublisher _publisher;
 
-        public TripOfferController(ITripService tripService)
+        public TripOfferController(ITripService tripService, MessagePublisher publisher)
         {
             _tripService = tripService;
+            _publisher = publisher;
         }
 
         [HttpGet]
@@ -59,6 +61,7 @@ namespace TripService.Controllers
             try
             {
                 var offer = await _tripService.CreateTripOfferAsync(tripOfferDTO);
+                _publisher.Publish(offer);
                 return CreatedAtAction(nameof(GetAvailableOffers), new { id = offer.Id }, offer);
             }
             catch (Exception ex)

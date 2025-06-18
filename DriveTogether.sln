@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService", "UserService\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TripService", "TripService\TripService.csproj", "{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotificationService", "NotificationService\NotificationService.csproj", "{DBFC2DCE-5668-4573-84DB-EC707AA16448}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A13CDD3-C0D2-42F4-9E67-3B8DA833F308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBFC2DCE-5668-4573-84DB-EC707AA16448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBFC2DCE-5668-4573-84DB-EC707AA16448}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBFC2DCE-5668-4573-84DB-EC707AA16448}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBFC2DCE-5668-4573-84DB-EC707AA16448}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -64,62 +64,63 @@ public class MessageProcessor
         }
         else if (CurrentUser != null)
         {
-            await ProcessFormStep(messageText, user);
+            await ProcessFormStep(messageText);
         }
     }
 
-    private async Task ProcessFormStep(string input, User user)
+    private async Task ProcessFormStep(string input)
     {
-        switch (user.CurrentStep)
+        switch (CurrentUser.CurrentStep)
         {
             case FormStep.Name:
-                user.Name = input;
-                user.CurrentStep = FormStep.Phone;
+                CurrentUser.Name = input;
+                CurrentUser.CurrentStep = FormStep.Phone;
                 await _botClient.SendMessage(
                     _message.Chat,
                     text: "Теперь введите ваш номер телефона:");
                 break;
 
             case FormStep.Phone:
-                user.Phone = input;
-                user.CurrentStep = FormStep.Complete;
-                await ProcessCompletedForm(user);
+                CurrentUser.Phone = input;
+                CurrentUser.CurrentStep = FormStep.Complete;
+                await ProcessCompletedForm(CurrentUser);
                 break;
         }
 
-        if (user.CurrentStep == FormStep.Complete)
+        if (CurrentUser.CurrentStep == FormStep.Complete)
         {
-            switch (user.TripStepEnum)
+            switch (CurrentUser.TripStepEnum)
             {
                 case TripStep.AvailableSeats:
-                    user.TripOffer.AvailableSeats = Convert.ToInt32(input);
-                    user.TripStepEnum = TripStep.Price;
+                    CurrentUser.TripOffer.AvailableSeats = Convert.ToInt32(input);
+                    CurrentUser.TripStepEnum = TripStep.Price;
                     await _botClient.SendMessage(
                         _message.Chat,
                         text: "Введите стоимость за одно место:");
                     break;
 
                 case TripStep.Price:
-                    user.TripOffer.PricePerSeat = Convert.ToInt32(input);
-                    user.TripStepEnum = TripStep.Description;
+                    CurrentUser.TripOffer.PricePerSeat = Convert.ToInt32(input);
+                    CurrentUser.TripStepEnum = TripStep.Description;
                     await _botClient.SendMessage(
                         _message.Chat,
                         text: "Введите дополнительное описание:");
                     break;
 
                 case TripStep.Description:
-                    user.TripOffer.Description = input;
-                    user.TripStepEnum = TripStep.Complete;
+                    CurrentUser.TripOffer.Description = input;
+                    CurrentUser.TripStepEnum = TripStep.Complete;
                     await _botClient.SendMessage(
                         _message.Chat,
                         text: "Успешно!");
 
-                    await CreateTrip(user.TripOffer);
-                    user.TripOffer = null;
-                    
+                    await CreateTrip(CurrentUser.TripOffer);
+                    CurrentUser.TripOffer = null;
+
                     break;
             }
         }
+        await Common.AddOrUpdateUser(CurrentUser);
     }
 
     public async Task SendDateSelectionAsync(long chatId)

@@ -77,13 +77,21 @@ public class CallbackQueryProcessor
 
         var userId = callbackQuery?.From?.Id;
 
-        if (Common.Users.TryGetValue(userId.Value, out User user))
+        var user = await Common.GetUser(userId.Value);
+        if (user != null)
         {
-            user.TripOffer.StartLocationId = selectedStartLocationId;
-            user.TripOffer.EndLocationId = selectedEndLocationId;
-            user.TripStepEnum = TripStep.DepartureDate;
+            CurrentUser = user;
+            
+            CurrentUser.TripOffer.StartLocationId = selectedStartLocationId;
+            CurrentUser.TripOffer.EndLocationId = selectedEndLocationId;
+            CurrentUser.TripStepEnum = TripStep.DepartureDate;
+            await Common.AddOrUpdateUser(CurrentUser);
             await SendDateSelectionAsync(callbackQuery.Message.Chat.Id);
-        }   
+        }
+        else
+        {
+            throw new Exception("HandleEndLocationSelectionAsync CurrentUser");
+        } 
     }
 
     public async Task SendDateSelectionAsync(long chatId)
@@ -175,13 +183,21 @@ public class CallbackQueryProcessor
 
         var userId = callbackQuery?.From?.Id;
 
-        if (Common.Users.TryGetValue(userId.Value, out User user))
+        var user = await Common.GetUser(userId.Value);
+        if (user != null)
         {
-            user.TripOffer.DepartureTime = dateTime;
-            user.TripStepEnum = TripStep.AvailableSeats;
+            CurrentUser = user;
+
+            CurrentUser.TripOffer.DepartureTime = dateTime;
+            CurrentUser.TripStepEnum = TripStep.AvailableSeats;
+            await Common.AddOrUpdateUser(CurrentUser);
             await _botClient.SendMessage(
-                            callbackQuery.Message.Chat.Id,
-                            text: "Введите количество свободных мест:");
+                callbackQuery.Message.Chat.Id,
+                text: "Введите количество свободных мест:");
         }
+        else
+        {
+            throw new Exception("HandleTimeSelectionAsync CurrentUser");
+        } 
     }
 }

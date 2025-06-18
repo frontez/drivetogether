@@ -28,9 +28,10 @@ namespace DriveTogetherBot
             _botClient = new TelegramBotClient(GetTelegramToken(), cancellationToken: _cts.Token);
         }
 
-        public static void Initialize(IConfiguration configuration)
+        public static void Initialize(IConfiguration configuration, RedisCacheService redisService, ILogger<RedisCacheService> logger)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            Common.Initialize(redisService, logger);
         }
 
         public static TelegramHandler GetInstance(CancellationToken cancellationToken)

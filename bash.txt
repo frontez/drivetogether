@@ -93,3 +93,21 @@ kubectl apply -f notificationservice.yaml
 
 
 kubectl apply -f rabbitmq-deployment.yaml -f rabbitmq-service.yaml
+
+
+helm install redis oci://registry-1.docker.io/bitnamicharts/redis \
+  --version 18.4.0 \
+  --set auth.password=your-strong-password-here \
+  --set architecture=standalone \
+  --set master.persistence.enabled=true \
+  --set master.persistence.size=1Gi \
+  --set service.type=ClusterIP \
+  --set resources.requests.memory=256Mi \
+  --set resources.requests.cpu=100m \
+  --set resources.limits.memory=512Mi \
+  --set resources.limits.cpu=500m
+
+
+
+  kubectl port-forward --namespace default svc/redis-master 6379:6379 &
+    REDISCLI_AUTH="your-strong-password-here" redis-cli -h 127.0.0.1 -p 6379

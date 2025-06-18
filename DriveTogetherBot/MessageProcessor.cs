@@ -40,12 +40,29 @@ public class MessageProcessor
 
         if (_message.Text is not { } messageText)
             return;
+            
+        var user = await Common.GetUser(UserId);
+        if (user != null)
+        {
+            CurrentUser = user;
+        }
+        else
+        {
+            user = await GetUser(UserId);
+
+            if (user != null)
+            {
+                user.CurrentStep = FormStep.Complete;                
+                CurrentUser = user;
+                await Common.AddOrUpdateUser(CurrentUser);
+            }
+        }
 
         if (messageText.StartsWith('/'))
         {
             await OnCommand(messageText, _message, UserId);
         }
-        else if (Common.Users.TryGetValue(UserId, out User user))
+        else if (CurrentUser != null)
         {
             await ProcessFormStep(messageText, user);
         }
@@ -146,20 +163,20 @@ public class MessageProcessor
 
     private async Task OnCommand(string messageText, Message message, long UserId)
     {
-        if (Common.Users.ContainsKey(UserId))
+        var user = await Common.GetUser(UserId);
+        if (user != null)
         {
-            Common.Users.TryGetValue(UserId, out User user);
             CurrentUser = user;
         }
         else
         {
-            var user = await GetUser(UserId);            
+            user = await GetUser(UserId);
 
             if (user != null)
             {
                 user.CurrentStep = FormStep.Complete;
-                Common.Users.TryAdd(UserId, user);
                 CurrentUser = user;
+                await Common.AddOrUpdateUser(CurrentUser);                
             }
         }
 
@@ -174,13 +191,11 @@ public class MessageProcessor
                 CurrentUser.Id = UserId;
                 CurrentUser.Username = message.From.Username;
 
-                if (Common.Users.TryAdd(UserId, CurrentUser))
-                {
-                    await _botClient.SendMessage(
+                await Common.AddOrUpdateUser(CurrentUser);
+                await _botClient.SendMessage(
                         _message.Chat,
                         text: "Введите ваше имя:",
                         cancellationToken: _token);
-                }
             }
             else
             {
@@ -229,7 +244,7 @@ public class MessageProcessor
                 CurrentUser.TripOffer = new TripOffer();
                 CurrentUser.TripOffer.DriverId = UserId;
                 CurrentUser.TripStepEnum = TripStep.TripStartLocation;
-
+                await Common.AddOrUpdateUser(CurrentUser);
                 await GetAllLocations();
                 await SendStartLocationSelectionAsync(_message.Chat.Id);
             }

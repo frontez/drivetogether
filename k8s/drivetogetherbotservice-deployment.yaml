@@ -18,6 +18,8 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        - name: ConnectionStrings:Redis
+          value: "redis-master:6379,password=your-strong-password-here,abortConnect=false,connectTimeout=30000"
         - name: TelegramToken
           valueFrom:
             secretKeyRef:
@@ -42,3 +44,9 @@ spec:
           requests:
             memory: 256Mi
             cpu: "0.2"
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/drivetogetherbot
+      volumes:
+      - name: logs
+        emptyDir: {}
